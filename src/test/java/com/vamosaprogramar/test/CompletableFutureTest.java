@@ -1,13 +1,16 @@
 package com.vamosaprogramar.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.sql.Time;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 
@@ -98,6 +101,40 @@ public class CompletableFutureTest {
 				CompletableFuture.supplyAsync(() -> 10)
 				.thenAcceptBoth(CompletableFuture.supplyAsync(() -> 13), (x, y) -> System.out.println("My age is "+(x+y)));
 		
+	}
+	
+	@Test
+	public void completableFuturesInParallel() throws InterruptedException, ExecutionException {
+		
+		CompletableFuture<String> completableFuture1 =
+				CompletableFuture
+				.supplyAsync(() -> Arrays.asList("a","b","c").stream().collect(Collectors.joining(",")));
+		
+		CompletableFuture<List<String>> completableFuture2 =
+				CompletableFuture
+				.supplyAsync(
+						() -> Arrays.asList("Naren", " Fernanda").stream().map(String::toUpperCase).collect(Collectors.toList()));
+				
+		CompletableFuture.allOf(completableFuture1,completableFuture2).get();
+	
+		assertTrue(completableFuture1.isDone());
+		assertTrue(completableFuture2.isDone());
+	
+	}
+	
+	@Test
+	public void combinedResultsOfAllFutures() {
+		CompletableFuture<String> completableFuture1 =
+				CompletableFuture.supplyAsync(() -> "Hello");
+		
+		CompletableFuture<String> completableFuture2 =
+				CompletableFuture.supplyAsync(() -> "Naren!");
+		
+		String actual = Stream.of(completableFuture1, completableFuture2)
+				.map(x -> x.join())
+				.collect(Collectors.joining(" "));
+				
+		assertEquals("Hello Naren!", actual);
 	}
 	
 }
