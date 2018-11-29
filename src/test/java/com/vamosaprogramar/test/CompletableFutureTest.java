@@ -10,10 +10,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -23,7 +25,15 @@ public class CompletableFutureTest {
 	
 	@Before
 	public void setUp() {
+		
 		executorService = Executors.newFixedThreadPool(4);
+	}
+	
+	@After
+	public void closeThePool() throws InterruptedException {
+		
+		executorService.shutdown();
+		executorService.awaitTermination(5, TimeUnit.SECONDS);
 	}
 	
 
@@ -38,6 +48,10 @@ public class CompletableFutureTest {
 		assertEquals("NAREN", actual);
 	}
 
+	/************************************************
+	 * Testing thenApply method
+	 ***********************************************/
+	
 	@Test
 	public void completableFutureWithThenApply() throws InterruptedException, ExecutionException {
 		CompletableFuture<Integer> completableFuture =
@@ -57,12 +71,30 @@ public class CompletableFutureTest {
 				CompletableFuture.supplyAsync(() -> 10);
 		
 		CompletableFuture<Integer> completableFuture2 =
+				completableFuture.thenApplyAsync(x -> x*10);
+		//Blocking
+		Integer actual = completableFuture2.get();
+		
+		assertEquals(100, actual, 0.0);
+	}
+	
+	@Test
+	public void completableFutureWithThenApplyAsyncWithExecutor() throws InterruptedException, ExecutionException {
+		CompletableFuture<Integer> completableFuture =
+				CompletableFuture.supplyAsync(() -> 10);
+		
+		CompletableFuture<Integer> completableFuture2 =
 				completableFuture.thenApplyAsync(x -> x*10, executorService);
 		//Blocking
 		Integer actual = completableFuture2.get();
 		
 		assertEquals(100, actual, 0.0);
 	}
+	
+	/************************************************
+	 * Testing thenAccept method
+	 ***********************************************/	
+
 		
 	@Test
 	public void completableFutureWithThenAccept() throws InterruptedException, ExecutionException {
@@ -78,6 +110,36 @@ public class CompletableFutureTest {
 	}
 	
 	@Test
+	public void completableFutureWithThenAcceptAsync() throws InterruptedException, ExecutionException {
+		
+		CompletableFuture<Integer> completableFuture =
+				CompletableFuture.supplyAsync(() -> 23);
+		
+		CompletableFuture<Void> completableFuture2 =
+				completableFuture.thenAcceptAsync(x -> System.out.println("I'm "+x+" years old"));
+		//Blocking
+		completableFuture2.get();
+		
+	}
+	
+	@Test
+	public void completableFutureWithThenAcceptAsyncwithExecutor() throws InterruptedException, ExecutionException {
+		
+		CompletableFuture<Integer> completableFuture =
+				CompletableFuture.supplyAsync(() -> 23);
+		
+		CompletableFuture<Void> completableFuture2 =
+				completableFuture.thenAcceptAsync(x -> System.out.println("I'm "+x+" years old"), executorService);
+		//Blocking
+		completableFuture2.get();
+		
+	}
+	
+	/*****************************************************
+	 Testing thenRun method
+	 ****************************************************/
+	
+	@Test
 	public void completableFutureWithThenRun() {
 		
 		CompletableFuture<String> completableFuture = 
@@ -85,6 +147,10 @@ public class CompletableFutureTest {
 		CompletableFuture<Void> completableFuture2 =
 				completableFuture.thenRun(() -> System.out.println("Morning son! How was ur night"));
 	}
+	
+	/*****************************************************
+	 Testing thenCompose method
+	 ****************************************************/
 	
 	@Test
 	public void completableFutureWithThenCompose() throws InterruptedException, ExecutionException {
@@ -99,6 +165,33 @@ public class CompletableFutureTest {
 	}
 	
 	@Test
+	public void completableFutureWithThenComposeAsync() throws InterruptedException, ExecutionException {
+		CompletableFuture<String> completableFuture = 
+				CompletableFuture.supplyAsync(() -> "Morning Naren!")
+				.thenComposeAsync(x -> CompletableFuture.supplyAsync(() -> x+" How are you?"));
+		
+		//Blocking
+		String actual = completableFuture.get();
+		
+		assertEquals("Morning Naren! How are you?", actual);
+	}
+	
+	@Test
+	public void completableFutureWithThenComposeAsyncWithExecutor() throws InterruptedException, ExecutionException {
+		CompletableFuture<String> completableFuture = 
+				CompletableFuture.supplyAsync(() -> "Morning Naren!")
+				.thenComposeAsync(x -> CompletableFuture.supplyAsync(() -> x+" How are you?"), executorService);
+		
+		//Blocking
+		String actual = completableFuture.get();
+		
+		assertEquals("Morning Naren! How are you?", actual);
+	}
+	/**********************************************
+	 Testing thenCombine method
+	 **********************************************/
+	
+	@Test
 	public void completableFutureWithThenCombine() throws InterruptedException, ExecutionException {
 		
 		CompletableFuture<Double> completableFuture =
@@ -109,6 +202,32 @@ public class CompletableFutureTest {
 		
 		assertEquals(230.0, actual, 0.0);
 	}
+	
+	@Test
+	public void completableFutureWithThenCombineAsync() throws InterruptedException, ExecutionException {
+		
+		CompletableFuture<Double> completableFuture =
+				CompletableFuture.supplyAsync(() -> 23.0)
+				.thenCombineAsync(CompletableFuture.supplyAsync(() -> 10.0), (x, y) -> x * y);
+		//Blocking
+		double actual = completableFuture.get();
+		
+		assertEquals(230.0, actual, 0.0);
+	}
+	
+	
+	@Test
+	public void completableFutureWithThenCombineAsyncWithExecutor() throws InterruptedException, ExecutionException {
+		
+		CompletableFuture<Double> completableFuture =
+				CompletableFuture.supplyAsync(() -> 23.0)
+				.thenCombineAsync(CompletableFuture.supplyAsync(() -> 10.0), (x, y) -> x * y, executorService);
+		//Blocking
+		double actual = completableFuture.get();
+		
+		assertEquals(230.0, actual, 0.0);
+	}
+	
 	
 	
 	@Test
@@ -200,15 +319,31 @@ public class CompletableFutureTest {
 		
 	}
 	
+	/**********************************************
+	 Working with acceptEither, applyToEither 
+	 **********************************************/
+				
+	@Test
+	public void completableFutureWithAcceptEither() {
+		CompletableFuture<String> completableFuture =
+				CompletableFuture.supplyAsync(() -> "First");
+		
+		CompletableFuture<String> completableFuture2 =
+				CompletableFuture.supplyAsync(() -> "Second");
+		
+		completableFuture.acceptEither(completableFuture2,(x) -> System.out.print("Do this regardless of who is finished first!"));
+	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	@Test
+	public void completableFutureWithApplyToEither() {
+		CompletableFuture<String> completableFuture =
+				CompletableFuture.supplyAsync(() -> "First");
+		
+		CompletableFuture<String> completableFuture2 =
+				CompletableFuture.supplyAsync(() -> "Second");
+		
+		CompletableFuture<String> completableFuture3 = 
+				completableFuture.applyToEither(completableFuture2,String::toUpperCase);
+	}
 	
 }
