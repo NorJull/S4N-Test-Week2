@@ -136,5 +136,68 @@ public class CompletableFutureTest {
 				
 		assertEquals("Hello Naren!", actual);
 	}
+
+	@Test
+	public void completableFutureWithHandle_thenThrowException() throws InterruptedException, ExecutionException {
+		
+		double dividend = 6;
+		double divisor  = 0;
+		
+		CompletableFuture<String> completableFuture =
+				CompletableFuture.supplyAsync(() -> {
+					
+					if(divisor == 0) {
+						throw new ArithmeticException(); 
+					}
+					double quotient = dividend/divisor;
+					
+					return dividend + " divided by " + divisor + " is equals to " + quotient;
+				}).handle((result,  exception) -> exception != null ? "It is not possible to divide by zero." : result);
+		
+		String actual = completableFuture.get();
+		
+		assertEquals("It is not possible to divide by zero.", actual);
+		
+	}
+	
+	@Test
+	public void completableFutureWithHandle() throws InterruptedException, ExecutionException {
+		
+		double dividend = 6;
+		double divisor  = 3;
+		
+		CompletableFuture<String> completableFuture =
+				CompletableFuture.supplyAsync(() -> {
+					
+					if(divisor == 0) {
+						throw new ArithmeticException(); 
+					}
+					double quotient = dividend/divisor;
+					
+					return dividend + " divided by " + divisor + " is equals to " + quotient;
+				}).handle((result,  exception) -> exception != null ? "It is not possible to divide by zero." : result);
+		
+		String actual = completableFuture.get();
+
+		assertEquals("6.0 divided by 3.0 is equals to 2.0", actual);
+		
+	}
+	
+	
+	/*
+	 * To define a poolThread and Test each methos () Async()  Asycn(, ExecutorService )
+	 * */
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 }
