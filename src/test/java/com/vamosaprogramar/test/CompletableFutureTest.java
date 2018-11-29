@@ -8,20 +8,24 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.junit.Before;
 import org.junit.Test;
 
 public class CompletableFutureTest {
 
-	/**********************************************************
-	 * supplyAsync[Testing]
-	 * @throws ExecutionException 
-	 * @throws InterruptedException 
-	 * 
-	 *********************************************************/
+	private ExecutorService executorService;
+	
+	@Before
+	public void setUp() {
+		executorService = Executors.newFixedThreadPool(4);
+	}
+	
 
 	@Test
 	public void completableFutureWithSupplyAsync() throws InterruptedException, ExecutionException {
@@ -47,6 +51,19 @@ public class CompletableFutureTest {
 		assertEquals(100, actual, 0.0);
 	}
 	
+	@Test
+	public void completableFutureWithThenApplyAsync() throws InterruptedException, ExecutionException {
+		CompletableFuture<Integer> completableFuture =
+				CompletableFuture.supplyAsync(() -> 10);
+		
+		CompletableFuture<Integer> completableFuture2 =
+				completableFuture.thenApplyAsync(x -> x*10, executorService);
+		//Blocking
+		Integer actual = completableFuture2.get();
+		
+		assertEquals(100, actual, 0.0);
+	}
+		
 	@Test
 	public void completableFutureWithThenAccept() throws InterruptedException, ExecutionException {
 		
@@ -182,12 +199,6 @@ public class CompletableFutureTest {
 		assertEquals("6.0 divided by 3.0 is equals to 2.0", actual);
 		
 	}
-	
-	
-	/*
-	 * To define a poolThread and Test each methos () Async()  Asycn(, ExecutorService )
-	 * */
-	
 	
 	
 	
